@@ -1,25 +1,46 @@
-import { Shield, ShieldX } from "lucide-react";
-import { gateEvents } from "@/data/mockData";
+import { Shield, ShieldX, RefreshCw } from "lucide-react";
 import { VehicleNumber } from "@/components/ui/mono-text";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
+import { getLiveGateEvents } from "@/data/liveDataSimulator";
+import { Button } from "@/components/ui/button";
 
 export function LiveFeed() {
+  const { data: events, lastUpdated, isRefreshing, refresh } = useAutoRefresh(
+    getLiveGateEvents,
+    { interval: 30000 }
+  );
+
   return (
     <div className="bg-card rounded-xl border border-border h-full flex flex-col">
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-foreground">Live Feed</h3>
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={refresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={cn("h-3.5 w-3.5 text-muted-foreground", isRefreshing && "animate-spin")} />
+            </Button>
             <div className="w-2 h-2 rounded-full bg-safe animate-pulse" />
-            <span className="text-xs text-muted-foreground">Real-time</span>
+            <span className="text-xs text-muted-foreground">
+              {isRefreshing ? "Updating..." : "Real-time"}
+            </span>
           </div>
         </div>
+        <p className="text-[10px] text-muted-foreground mt-1">
+          Last updated: {formatDistanceToNow(lastUpdated, { addSuffix: true })}
+        </p>
       </div>
       
       <div className="flex-1 overflow-y-auto scrollbar-dark">
         <div className="divide-y divide-border">
-          {gateEvents.map((event, index) => (
+          {events.map((event, index) => (
             <div 
               key={event.id} 
               className={cn(
