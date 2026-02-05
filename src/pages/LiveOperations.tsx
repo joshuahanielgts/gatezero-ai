@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { trips } from "@/data/mockData";
 import { VehicleNumber } from "@/components/ui/mono-text";
 import { TripStatusBadge } from "@/components/ui/status-badge";
 import { Input } from "@/components/ui/input";
@@ -20,16 +19,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, MoreVertical, Eye, Phone, MapPin } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { Search, MoreVertical, Eye, Phone, MapPin, RefreshCw } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
+import { getLiveTrips } from "@/data/liveDataSimulator";
 
 type FilterTab = 'All' | 'On Route' | 'Delayed' | 'At Destination';
 
 export default function LiveOperations() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterTab>('All');
+  
+  const { data: trips, lastUpdated, isRefreshing, refresh } = useAutoRefresh(
+    getLiveTrips,
+    { interval: 30000 }
+  );
 
   const filteredTrips = trips.filter((trip) => {
     const matchesSearch = trip.vehicleNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -60,11 +66,34 @@ export default function LiveOperations() {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Live Operations</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Real-time tracking of active trips and fleet movements
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Live Operations</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Real-time tracking of active trips and fleet movements
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="w-2 h-2 rounded-full bg-safe animate-pulse" />
+              <span>Auto-refresh: 30s</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refresh}
+              disabled={isRefreshing}
+              className="border-border"
+            >
+              <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
+              {isRefreshing ? "Updating..." : "Refresh"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Last Updated */}
+        <div className="text-xs text-muted-foreground">
+          Last updated: {formatDistanceToNow(lastUpdated, { addSuffix: true })}
         </div>
 
         {/* Search and Filters */}
