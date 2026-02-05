@@ -25,7 +25,7 @@ export default function CommandCenter() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <KPICard
             title="Risk Score"
             value={dashboardKPIs.riskScore.value}
@@ -65,11 +65,11 @@ export default function CommandCenter() {
         </div>
 
         {/* Split View - Live Feed & Trend Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-[450px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+          <div className="h-[350px] sm:h-[400px] lg:h-[450px]">
             <LiveFeed />
           </div>
-          <div className="h-[450px]">
+          <div className="h-[350px] sm:h-[400px] lg:h-[450px]">
             <TrendChart />
           </div>
         </div>

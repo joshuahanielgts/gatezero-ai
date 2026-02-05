@@ -121,34 +121,34 @@ const Auth = () => {
   if (view === "forgot-password") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Shield className="h-8 w-8 text-primary" />
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader className="text-center px-4 sm:px-6">
+            <div className="flex justify-center mb-3 sm:mb-4">
+              <div className="p-2.5 sm:p-3 rounded-full bg-primary/10">
+                <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl">Reset Password</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl sm:text-2xl">Reset Password</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               {resetSent 
                 ? "We've sent you an email with reset instructions" 
                 : "Enter your email to receive reset instructions"}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             {resetSent ? (
               <div className="space-y-4">
-                <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 text-center">
-                  <p className="text-sm text-foreground">
-                    A password reset link has been sent to <strong>{forgotEmail}</strong>
+                <div className="p-3 sm:p-4 rounded-lg bg-primary/10 border border-primary/20 text-center">
+                  <p className="text-xs sm:text-sm text-foreground">
+                    A password reset link has been sent to <strong className="break-all">{forgotEmail}</strong>
                   </p>
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">
                     Didn't receive the email? Check your spam folder or try again.
                   </p>
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-full" 
+                  className="w-full h-10 sm:h-11" 
                   onClick={handleBackToLogin}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
@@ -158,7 +158,7 @@ const Auth = () => {
             ) : (
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="forgot-email">Email</Label>
+                  <Label htmlFor="forgot-email" className="text-sm">Email</Label>
                   <Input
                     id="forgot-email"
                     type="email"
@@ -166,15 +166,16 @@ const Auth = () => {
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                     disabled={isLoading}
+                    className="h-10 sm:h-11"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full h-10 sm:h-11" disabled={isLoading}>
                   {isLoading ? "Sending..." : "Send Reset Link"}
                 </Button>
                 <Button 
                   type="button" 
                   variant="ghost" 
-                  className="w-full" 
+                  className="w-full h-10 sm:h-11" 
                   onClick={handleBackToLogin}
                   disabled={isLoading}
                 >
@@ -191,27 +192,27 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Shield className="h-8 w-8 text-primary" />
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center px-4 sm:px-6">
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <div className="p-2.5 sm:p-3 rounded-full bg-primary/10">
+              <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl">FleetGuard Portal</CardTitle>
-          <CardDescription>Sign in to access the command center</CardDescription>
+          <CardTitle className="text-xl sm:text-2xl">FleetGuard Portal</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Sign in to access the command center</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6">
+              <TabsTrigger value="login" className="text-xs sm:text-sm">Login</TabsTrigger>
+              <TabsTrigger value="signup" className="text-xs sm:text-sm">Sign Up</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-email" className="text-sm">Email</Label>
                   <Input
                     id="login-email"
                     type="email"
@@ -219,15 +220,16 @@ const Auth = () => {
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     disabled={isLoading}
+                    className="h-10 sm:h-11"
                   />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="login-password">Password</Label>
+                    <Label htmlFor="login-password" className="text-sm">Password</Label>
                     <Button
                       type="button"
                       variant="link"
-                      className="px-0 h-auto text-xs text-muted-foreground hover:text-primary"
+                      className="px-0 h-auto text-[10px] sm:text-xs text-muted-foreground hover:text-primary"
                       onClick={() => setView("forgot-password")}
                     >
                       Forgot password?
@@ -241,6 +243,7 @@ const Auth = () => {
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       disabled={isLoading}
+                      className="h-10 sm:h-11"
                     />
                     <Button
                       type="button"
@@ -253,7 +256,7 @@ const Auth = () => {
                     </Button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full h-10 sm:h-11" disabled={isLoading}>
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
@@ -262,7 +265,7 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Label htmlFor="signup-name" className="text-sm">Full Name</Label>
                   <Input
                     id="signup-name"
                     type="text"
@@ -270,10 +273,11 @@ const Auth = () => {
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
                     disabled={isLoading}
+                    className="h-10 sm:h-11"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email" className="text-sm">Email</Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -281,10 +285,11 @@ const Auth = () => {
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
                     disabled={isLoading}
+                    className="h-10 sm:h-11"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password" className="text-sm">Password</Label>
                   <div className="relative">
                     <Input
                       id="signup-password"
@@ -293,6 +298,7 @@ const Auth = () => {
                       value={signupPassword}
                       onChange={(e) => setSignupPassword(e.target.value)}
                       disabled={isLoading}
+                      className="h-10 sm:h-11"
                     />
                     <Button
                       type="button"
@@ -306,7 +312,7 @@ const Auth = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-confirm">Confirm Password</Label>
+                  <Label htmlFor="signup-confirm" className="text-sm">Confirm Password</Label>
                   <Input
                     id="signup-confirm"
                     type="password"
@@ -314,9 +320,10 @@ const Auth = () => {
                     value={signupConfirmPassword}
                     onChange={(e) => setSignupConfirmPassword(e.target.value)}
                     disabled={isLoading}
+                    className="h-10 sm:h-11"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full h-10 sm:h-11" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Create Account"}
                 </Button>
               </form>

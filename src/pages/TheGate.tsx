@@ -90,16 +90,16 @@ export default function TheGate() {
     <AppLayout>
       <div className="min-h-[80vh] flex flex-col">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground">The Gate</h1>
-          <p className="text-muted-foreground text-sm mt-1">
+        <div className="mb-6 lg:mb-8">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">The Gate</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-1">
             Compliance verification engine - Verify before dispatch
           </p>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex items-center justify-center py-8">
-          <div className="w-full">
+        <div className="flex-1 flex items-center justify-center py-4 sm:py-8">
+          <div className="w-full px-2 sm:px-0">
             {state === 'input' && (
               <ScanForm onSubmit={handleScan} isLoading={false} />
             )}
