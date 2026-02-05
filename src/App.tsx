@@ -8,6 +8,7 @@ import TheGate from "./pages/TheGate";
 import LiveOperations from "./pages/LiveOperations";
 import FleetGuard from "./pages/FleetGuard";
 import AuditLogs from "./pages/AuditLogs";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<CommandCenter />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/gate" element={<TheGate />} />
           <Route path="/operations" element={<LiveOperations />} />
           <Route path="/fleet" element={<FleetGuard />} />
