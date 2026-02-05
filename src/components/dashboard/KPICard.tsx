@@ -46,32 +46,32 @@ export function KPICard({
   const styles = variantStyles[variant];
 
   return (
-    <div className="bg-card rounded-xl border border-border p-5 hover:border-primary/30 transition-colors">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-3">
-            <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", styles.iconBg)}>
-              <Icon className={cn("w-5 h-5", styles.iconColor)} />
+    <div className="bg-card rounded-xl border border-border p-4 sm:p-5 hover:border-primary/30 transition-colors">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+            <div className={cn("w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0", styles.iconBg)}>
+              <Icon className={cn("w-4 h-4 sm:w-5 sm:h-5", styles.iconColor)} />
             </div>
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
           </div>
           
-          <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold text-foreground tracking-tight">
+          <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+            <p className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               {typeof value === 'number' ? value.toLocaleString('en-IN') : value}
             </p>
             {trend && (
-              <span className={cn("text-sm font-medium", styles.trendColor)}>
+              <span className={cn("text-xs sm:text-sm font-medium", styles.trendColor)}>
                 {trend}
               </span>
             )}
           </div>
           
-          <p className="text-xs text-muted-foreground mt-1">{description}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 line-clamp-2">{description}</p>
         </div>
         
         {chart && (
-          <div className="w-24 h-16">
+          <div className="w-16 h-12 sm:w-24 sm:h-16 shrink-0">
             {chart}
           </div>
         )}

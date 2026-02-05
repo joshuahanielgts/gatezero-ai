@@ -4,12 +4,12 @@ import { weeklyTrendData } from "@/data/mockData";
 export function TrendChart() {
   return (
     <div className="bg-card rounded-xl border border-border h-full flex flex-col">
-      <div className="p-4 border-b border-border">
-        <h3 className="font-semibold text-foreground">Compliance Trends</h3>
-        <p className="text-xs text-muted-foreground mt-1">Pass vs Blocked - Last 7 Days</p>
+      <div className="p-3 sm:p-4 border-b border-border">
+        <h3 className="font-semibold text-foreground text-sm sm:text-base">Compliance Trends</h3>
+        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Pass vs Blocked - Last 7 Days</p>
       </div>
       
-      <div className="flex-1 p-4 min-h-[300px]">
+      <div className="flex-1 p-2 sm:p-4 min-h-[250px] sm:min-h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={weeklyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
