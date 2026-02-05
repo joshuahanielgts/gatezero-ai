@@ -6,6 +6,7 @@ import {
   Activity, 
   Truck, 
   FileText,
+  LogIn,
   Menu,
   X
 } from "lucide-react";
@@ -42,6 +43,12 @@ const navItems = [
     label: "Audit Logs", 
     icon: FileText,
     description: "Forensic Trail"
+  },
+  { 
+    to: "/auth", 
+    label: "Login / Signup", 
+    icon: LogIn,
+    description: "Authentication"
   },
 ];
 
