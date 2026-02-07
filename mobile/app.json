@@ -1,0 +1,56 @@
+{
+    "expo": {
+        "name": "GateZero",
+        "slug": "gatezero-mobile",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "userInterfaceStyle": "automatic",
+        "splash": {
+            "image": "./assets/splash.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#0A0A0B"
+        },
+        "assetBundlePatterns": [
+            "**/*"
+        ],
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.gatezero.mobile",
+            "infoPlist": {
+                "NSCameraUsageDescription": "GateZero needs camera access to scan vehicle documents and number plates."
+            }
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#0A0A0B"
+            },
+            "package": "com.gatezero.mobile",
+            "permissions": [
+                "android.permission.CAMERA"
+            ]
+        },
+        "web": {
+            "favicon": "./assets/favicon.png",
+            "bundler": "metro"
+        },
+        "scheme": "gatezero",
+        "plugins": [
+            "expo-router", [
+                "expo-camera",
+                {
+                    "cameraPermission": "Allow GateZero to access your camera to scan documents."
+                }
+            ]
+        ],
+        "extra": {
+            "router": {
+                "origin": false
+            },
+            "eas": {
+                "projectId": "your-project-id"
+            }
+        }
+    }
+}

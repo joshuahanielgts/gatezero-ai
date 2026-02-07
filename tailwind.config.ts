@@ -61,7 +61,7 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // WayGuard semantic colors
+        // GateZero semantic colors
         safe: {
           DEFAULT: "hsl(var(--safe))",
           foreground: "hsl(var(--safe-foreground))",

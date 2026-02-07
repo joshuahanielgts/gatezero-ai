@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { vehicles, drivers } from "@/data/mockData";
+import { useVehicles, useDrivers } from "@/hooks";
 import { VehicleNumber } from "@/components/ui/mono-text";
 import { StatusBadge, RiskBadge } from "@/components/ui/status-badge";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Table,
   TableBody,
@@ -14,40 +16,40 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Truck, User } from "lucide-react";
-import { format, isAfter, isBefore, addDays } from "date-fns";
+import { Search, Truck, User, AlertCircle } from "lucide-react";
+import { format, isBefore, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function FleetGuard() {
   const [vehicleSearch, setVehicleSearch] = useState("");
   const [driverSearch, setDriverSearch] = useState("");
-  const [blacklistedVehicles, setBlacklistedVehicles] = useState<Set<string>>(
-    new Set(vehicles.filter(v => v.isBlacklisted).map(v => v.id))
-  );
+  
+  const { vehicles, isLoading: vehiclesLoading, error: vehiclesError, toggleBlacklist } = useVehicles({ realtime: true });
+  const { drivers, isLoading: driversLoading, error: driversError } = useDrivers();
 
   const filteredVehicles = vehicles.filter((v) =>
-    v.regNo.toLowerCase().includes(vehicleSearch.toLowerCase()) ||
-    v.ownerName.toLowerCase().includes(vehicleSearch.toLowerCase())
+    v.vehicle_no.toLowerCase().includes(vehicleSearch.toLowerCase()) ||
+    v.owner_name.toLowerCase().includes(vehicleSearch.toLowerCase())
   );
 
   const filteredDrivers = drivers.filter((d) =>
     d.name.toLowerCase().includes(driverSearch.toLowerCase()) ||
-    d.licenseNo.toLowerCase().includes(driverSearch.toLowerCase())
+    d.license_no.toLowerCase().includes(driverSearch.toLowerCase())
   );
 
-  const handleBlacklistToggle = (vehicleId: string, regNo: string) => {
-    setBlacklistedVehicles((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(vehicleId)) {
-        newSet.delete(vehicleId);
-        toast.success(`Vehicle ${regNo} removed from blacklist`);
+  const handleBlacklistToggle = async (vehicleNo: string) => {
+    try {
+      await toggleBlacklist(vehicleNo);
+      const vehicle = vehicles.find(v => v.vehicle_no === vehicleNo);
+      if (vehicle?.is_blacklisted) {
+        toast.success(`Vehicle ${vehicleNo} removed from blacklist`);
       } else {
-        newSet.add(vehicleId);
-        toast.error(`Vehicle ${regNo} added to blacklist`);
+        toast.error(`Vehicle ${vehicleNo} added to blacklist`);
       }
-      return newSet;
-    });
+    } catch {
+      toast.error("Failed to update blacklist status");
+    }
   };
 
   const getInsuranceStatusColor = (expiryDate: string) => {
@@ -70,6 +72,15 @@ export default function FleetGuard() {
     return 'active';
   };
 
+  const getRiskLevel = (riskScore: number | null): 'Low' | 'Medium' | 'High' => {
+    if (!riskScore) return 'Low';
+    if (riskScore < 30) return 'Low';
+    if (riskScore < 60) return 'Medium';
+    return 'High';
+  };
+
+  const showError = vehiclesError || driversError;
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -80,6 +91,17 @@ export default function FleetGuard() {
             Vehicle and driver registry management
           </p>
         </div>
+
+        {/* Error Alert */}
+        {showError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Connection Error</AlertTitle>
+            <AlertDescription>
+              {vehiclesError?.message || driversError?.message}
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Tabs */}
         <Tabs defaultValue="vehicles" className="space-y-6">
@@ -113,67 +135,83 @@ export default function FleetGuard() {
                     <TableRow className="border-border hover:bg-transparent">
                       <TableHead className="text-muted-foreground">Reg No</TableHead>
                       <TableHead className="text-muted-foreground">Type</TableHead>
+                      <TableHead className="text-muted-foreground">Owner</TableHead>
                       <TableHead className="text-muted-foreground">Insurance Expiry</TableHead>
-                      <TableHead className="text-muted-foreground">Driver Assigned</TableHead>
                       <TableHead className="text-muted-foreground">Risk Level</TableHead>
                       <TableHead className="text-muted-foreground">Status</TableHead>
                       <TableHead className="text-muted-foreground">Blacklist</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredVehicles.map((vehicle) => {
-                      const isBlacklisted = blacklistedVehicles.has(vehicle.id);
-                      const insuranceStatus = getInsuranceStatusColor(vehicle.insuranceExpiry);
-                      const driver = drivers.find(d => d.id === vehicle.assignedDriver);
-
-                      return (
-                        <TableRow 
-                          key={vehicle.id} 
-                          className={cn(
-                            "border-border",
-                            isBlacklisted ? "bg-blocked/5 hover:bg-blocked/10" : "hover:bg-muted/30"
-                          )}
-                        >
-                          <TableCell>
-                            <VehicleNumber number={vehicle.regNo} />
-                          </TableCell>
-                          <TableCell className="text-foreground">{vehicle.type}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className={cn(
-                                "font-mono text-sm",
-                                insuranceStatus === 'expired' && "text-blocked",
-                                insuranceStatus === 'expiring' && "text-expiring",
-                                insuranceStatus === 'active' && "text-foreground"
-                              )}>
-                                {format(new Date(vehicle.insuranceExpiry), 'dd MMM yyyy')}
-                              </span>
-                              <StatusBadge status={insuranceStatus}>
-                                {insuranceStatus === 'expired' ? 'Expired' : insuranceStatus === 'expiring' ? 'Expiring' : 'Active'}
-                              </StatusBadge>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-foreground">
-                            {driver?.name || <span className="text-muted-foreground">Unassigned</span>}
-                          </TableCell>
-                          <TableCell>
-                            <RiskBadge level={vehicle.riskLevel} />
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge status={isBlacklisted ? 'blocked' : 'active'}>
-                              {isBlacklisted ? 'Blacklisted' : 'Active'}
-                            </StatusBadge>
-                          </TableCell>
-                          <TableCell>
-                            <Switch
-                              checked={isBlacklisted}
-                              onCheckedChange={() => handleBlacklistToggle(vehicle.id, vehicle.regNo)}
-                              className="data-[state=checked]:bg-blocked"
-                            />
-                          </TableCell>
+                    {vehiclesLoading ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <TableRow key={i} className="border-border">
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-10" /></TableCell>
                         </TableRow>
-                      );
-                    })}
+                      ))
+                    ) : filteredVehicles.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          No vehicles found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredVehicles.map((vehicle) => {
+                        const insuranceStatus = getInsuranceStatusColor(vehicle.insurance_expiry);
+
+                        return (
+                          <TableRow 
+                            key={vehicle.vehicle_no} 
+                            className={cn(
+                              "border-border",
+                              vehicle.is_blacklisted ? "bg-blocked/5 hover:bg-blocked/10" : "hover:bg-muted/30"
+                            )}
+                          >
+                            <TableCell>
+                              <VehicleNumber number={vehicle.vehicle_no} />
+                            </TableCell>
+                            <TableCell className="text-foreground">{vehicle.vehicle_type}</TableCell>
+                            <TableCell className="text-foreground">{vehicle.owner_name}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span className={cn(
+                                  "font-mono text-sm",
+                                  insuranceStatus === 'expired' && "text-blocked",
+                                  insuranceStatus === 'expiring' && "text-expiring",
+                                  insuranceStatus === 'active' && "text-foreground"
+                                )}>
+                                  {format(new Date(vehicle.insurance_expiry), 'dd MMM yyyy')}
+                                </span>
+                                <StatusBadge status={insuranceStatus}>
+                                  {insuranceStatus === 'expired' ? 'Expired' : insuranceStatus === 'expiring' ? 'Expiring' : 'Active'}
+                                </StatusBadge>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <RiskBadge level={getRiskLevel(vehicle.risk_score)} />
+                            </TableCell>
+                            <TableCell>
+                              <StatusBadge status={vehicle.is_blacklisted ? 'blocked' : 'active'}>
+                                {vehicle.is_blacklisted ? 'Blacklisted' : 'Active'}
+                              </StatusBadge>
+                            </TableCell>
+                            <TableCell>
+                              <Switch
+                                checked={vehicle.is_blacklisted}
+                                onCheckedChange={() => handleBlacklistToggle(vehicle.vehicle_no)}
+                                className="data-[state=checked]:bg-blocked"
+                              />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -206,47 +244,66 @@ export default function FleetGuard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredDrivers.map((driver) => {
-                      const licenseStatus = getLicenseStatusColor(driver.licenseExpiry);
-
-                      return (
-                        <TableRow key={driver.id} className="border-border hover:bg-muted/30">
-                          <TableCell className="text-foreground font-medium">{driver.name}</TableCell>
-                          <TableCell>
-                            <span className="font-mono text-sm text-muted-foreground">{driver.licenseNo}</span>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className={cn(
-                                "font-mono text-sm",
-                                licenseStatus === 'expired' && "text-blocked",
-                                licenseStatus === 'warning' && "text-expiring",
-                                licenseStatus === 'active' && "text-foreground"
-                              )}>
-                                {format(new Date(driver.licenseExpiry), 'dd MMM yyyy')}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span className="font-mono text-sm text-foreground">+91 {driver.phone}</span>
-                          </TableCell>
-                          <TableCell>
-                            {driver.assignedVehicle ? (
-                              <VehicleNumber number={driver.assignedVehicle} />
-                            ) : (
-                              <span className="text-muted-foreground">Unassigned</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge 
-                              status={driver.status === 'Active' ? 'active' : driver.status === 'Inactive' ? 'inactive' : 'warning'}
-                            >
-                              {driver.status}
-                            </StatusBadge>
-                          </TableCell>
+                    {driversLoading ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <TableRow key={i} className="border-border">
+                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                         </TableRow>
-                      );
-                    })}
+                      ))
+                    ) : filteredDrivers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          No drivers found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredDrivers.map((driver) => {
+                        const licenseStatus = getLicenseStatusColor(driver.license_expiry);
+
+                        return (
+                          <TableRow key={driver.id} className="border-border hover:bg-muted/30">
+                            <TableCell className="text-foreground font-medium">{driver.name}</TableCell>
+                            <TableCell>
+                              <span className="font-mono text-sm text-muted-foreground">{driver.license_no}</span>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span className={cn(
+                                  "font-mono text-sm",
+                                  licenseStatus === 'expired' && "text-blocked",
+                                  licenseStatus === 'warning' && "text-expiring",
+                                  licenseStatus === 'active' && "text-foreground"
+                                )}>
+                                  {format(new Date(driver.license_expiry), 'dd MMM yyyy')}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-mono text-sm text-foreground">{driver.phone}</span>
+                            </TableCell>
+                            <TableCell>
+                              {driver.assigned_vehicle_no ? (
+                                <VehicleNumber number={driver.assigned_vehicle_no} />
+                              ) : (
+                                <span className="text-muted-foreground">Unassigned</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <StatusBadge 
+                                status={driver.status === 'Active' ? 'active' : driver.status === 'Inactive' ? 'inactive' : 'warning'}
+                              >
+                                {driver.status}
+                              </StatusBadge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
                   </TableBody>
                 </Table>
               </div>

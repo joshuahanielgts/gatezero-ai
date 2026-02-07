@@ -22,3 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Mobile
+mobile/node_modules
+mobile/.expo
+mobile/dist
+
+# Build outputs
+build
+.cache
+
+# OS files
+Thumbs.db

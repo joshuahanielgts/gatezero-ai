@@ -4,85 +4,90 @@ import { ScanForm } from "@/components/gate/ScanForm";
 import { ScanAnimation } from "@/components/gate/ScanAnimation";
 import { VerdictDisplay } from "@/components/gate/VerdictDisplay";
 import { GatePassModal } from "@/components/gate/GatePassModal";
-import { vehicles, auditLogs } from "@/data/mockData";
+import { verifyDispatch, type VerificationResult } from "@/services/verificationEngine";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 type GateState = 'input' | 'scanning' | 'verdict';
 
+interface ScanData {
+  vehicleNo: string;
+  eWayBill: string;
+  outcome: 'approved' | 'blocked';
+  checks: { name: string; status: 'passed' | 'failed' | 'warning'; details: string }[];
+  errors?: string[];
+  complianceScore: number;
+  qrCodeHash: string | null;
+  scanDuration: number;
+}
+
 export default function TheGate() {
+  const { user } = useAuth();
   const [state, setState] = useState<GateState>('input');
-  const [scanData, setScanData] = useState<{
-    vehicleNo: string;
-    eWayBill: string;
-    outcome: 'approved' | 'blocked';
-    checks: { name: string; status: 'passed' | 'failed' | 'warning'; details: string }[];
-    errors?: string[];
-  } | null>(null);
+  const [scanData, setScanData] = useState<ScanData | null>(null);
   const [showGatePass, setShowGatePass] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
 
-  const handleScan = (vehicleNo: string, eWayBill: string) => {
+  const handleScan = async (vehicleNo: string, eWayBill: string) => {
     setState('scanning');
-    
-    // Find vehicle data
-    const vehicle = vehicles.find(v => v.regNo === vehicleNo);
-    const isBlacklisted = vehicle?.isBlacklisted;
-    const isInsuranceExpired = vehicle?.insuranceStatus === 'Expired';
-    
-    // Determine outcome based on mock data
-    const shouldBlock = isBlacklisted || isInsuranceExpired || vehicleNo === 'MH-12-CD-9012';
-    
-    // Generate checks based on vehicle data
-    const checks = [];
-    const errors = [];
 
-    if (isBlacklisted) {
-      checks.push({ name: 'Blacklist Check', status: 'failed' as const, details: 'Vehicle is blacklisted' });
-      errors.push(`Vehicle ${vehicleNo} is on the blacklist`);
-    } else {
-      checks.push({ name: 'Vahan API Verification', status: 'passed' as const, details: 'RC Status: Active' });
+    try {
+      // Call the verification engine
+      const result = await verifyDispatch({
+        vehicleNo,
+        ewayBillNo: eWayBill,
+        operatorId: user?.id,
+      });
+
+      setVerificationResult(result);
+
+      // Transform result for the UI
+      setScanData({
+        vehicleNo,
+        eWayBill,
+        outcome: result.verdict === 'APPROVED' ? 'approved' : 'blocked',
+        checks: result.checks.map(c => ({
+          name: c.name,
+          status: c.status,
+          details: c.details,
+        })),
+        errors: result.reasons.length > 0 ? result.reasons : undefined,
+        complianceScore: result.compliance_score,
+        qrCodeHash: result.qr_code_hash,
+        scanDuration: result.scan_duration_ms,
+      });
+    } catch (error) {
+      console.error('Verification failed:', error);
+      toast.error('Verification system error. Please try again.');
+      setState('input');
     }
-
-    if (isInsuranceExpired) {
-      checks.push({ name: 'Insurance Verification', status: 'failed' as const, details: 'Policy Expired' });
-      errors.push('Insurance has expired');
-    } else if (vehicle?.insuranceStatus === 'Expiring Soon') {
-      checks.push({ name: 'Insurance Verification', status: 'warning' as const, details: 'Policy Expiring Soon' });
-    } else {
-      checks.push({ name: 'Insurance Verification', status: 'passed' as const, details: 'Policy Active' });
-    }
-
-    if (!shouldBlock) {
-      checks.push({ name: 'GSTIN Validation', status: 'passed' as const, details: 'GSTIN Active' });
-      checks.push({ name: 'E-Way Bill Validation', status: 'passed' as const, details: 'E-Way Bill Valid' });
-      checks.push({ name: 'Route Distance Check', status: 'passed' as const, details: 'PIN Code Gap: 3.2%' });
-    }
-
-    setScanData({
-      vehicleNo,
-      eWayBill,
-      outcome: shouldBlock ? 'blocked' : 'approved',
-      checks,
-      errors: errors.length > 0 ? errors : undefined,
-    });
   };
 
   const handleScanComplete = () => {
     setState('verdict');
+    
     if (scanData?.outcome === 'approved') {
-      toast.success('Compliance verification passed');
+      toast.success('Compliance verification passed', {
+        description: `Score: ${scanData.complianceScore}% | Duration: ${(scanData.scanDuration / 1000).toFixed(1)}s`,
+      });
     } else {
-      toast.error('Dispatch blocked due to compliance issues');
+      toast.error('Dispatch blocked due to compliance issues', {
+        description: `${scanData?.errors?.length || 0} violation(s) detected`,
+      });
     }
   };
 
   const handleIssuePass = () => {
     setShowGatePass(true);
-    toast.success('Gate Pass Generated Successfully');
+    toast.success('Gate Pass Generated Successfully', {
+      description: `Pass ID: ${verificationResult?.qr_code_hash?.slice(0, 16)}...`,
+    });
   };
 
   const handleReset = () => {
     setState('input');
     setScanData(null);
+    setVerificationResult(null);
     setShowGatePass(false);
   };
 
@@ -109,27 +114,51 @@ export default function TheGate() {
             )}
 
             {state === 'verdict' && scanData && (
-              <VerdictDisplay
-                outcome={scanData.outcome}
-                vehicleNo={scanData.vehicleNo}
-                eWayBill={scanData.eWayBill}
-                checks={scanData.checks}
-                errors={scanData.errors}
-                onIssuePass={scanData.outcome === 'approved' ? handleIssuePass : undefined}
-                onReset={handleReset}
-              />
+              <div className="space-y-4">
+                <VerdictDisplay
+                  outcome={scanData.outcome}
+                  vehicleNo={scanData.vehicleNo}
+                  eWayBill={scanData.eWayBill}
+                  checks={scanData.checks}
+                  errors={scanData.errors}
+                  vehicle={verificationResult?.vehicle_snapshot}
+                  driver={verificationResult?.driver_snapshot}
+                  onIssuePass={scanData.outcome === 'approved' ? handleIssuePass : undefined}
+                  onReset={handleReset}
+                />
+                
+                {/* Additional Stats */}
+                <div className="max-w-xl mx-auto">
+                  <div className="bg-card rounded-lg border border-border p-4 grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{scanData.complianceScore}%</p>
+                      <p className="text-xs text-muted-foreground">Compliance Score</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{scanData.checks.length}</p>
+                      <p className="text-xs text-muted-foreground">Checks Run</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{(scanData.scanDuration / 1000).toFixed(1)}s</p>
+                      <p className="text-xs text-muted-foreground">Scan Duration</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
       </div>
 
       {/* Gate Pass Modal */}
-      {scanData && (
+      {scanData && verificationResult && (
         <GatePassModal
           open={showGatePass}
           onOpenChange={setShowGatePass}
           vehicleNo={scanData.vehicleNo}
           eWayBill={scanData.eWayBill}
+          driverName={verificationResult.driver_snapshot?.name}
+          destination={undefined}
         />
       )}
     </AppLayout>

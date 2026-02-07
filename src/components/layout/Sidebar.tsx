@@ -8,10 +8,17 @@ import {
   FileText,
   LogIn,
   Menu,
-  X
+  X,
+  Bell,
+  Brain,
+  Wrench,
+  Settings,
+  Command
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useCommandBar } from "@/hooks/useCommandBar";
+import { Badge } from "@/components/ui/badge";
 
 const navItems = [
   { 
@@ -39,21 +46,42 @@ const navItems = [
     description: "Vehicle & Driver Registry"
   },
   { 
+    to: "/alerts", 
+    label: "Alerts", 
+    icon: Bell,
+    description: "Compliance Alerts",
+    badge: 3
+  },
+  { 
+    to: "/analytics", 
+    label: "Analytics", 
+    icon: Brain,
+    description: "AI Predictions",
+    isNew: true
+  },
+  { 
+    to: "/tools", 
+    label: "Tools", 
+    icon: Wrench,
+    description: "Calculators & Utilities"
+  },
+  { 
     to: "/audit", 
     label: "Audit Logs", 
     icon: FileText,
     description: "Forensic Trail"
   },
   { 
-    to: "/auth", 
-    label: "Login / Signup", 
-    icon: LogIn,
-    description: "Authentication"
+    to: "/settings", 
+    label: "Settings", 
+    icon: Settings,
+    description: "Configuration"
   },
 ];
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { openCommandBar } = useCommandBar();
 
   return (
     <>
@@ -89,10 +117,27 @@ export function Sidebar() {
               <Shield className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="font-semibold text-foreground text-lg tracking-tight">WayGuard AI</h1>
+              <h1 className="font-semibold text-foreground text-lg tracking-tight">GateZero</h1>
               <p className="text-xs text-muted-foreground">Compliance Firewall</p>
             </div>
           </div>
+        </div>
+
+        {/* AI Command Bar Shortcut */}
+        <div className="px-4 pt-4">
+          <Button
+            variant="outline"
+            className="w-full justify-between text-muted-foreground hover:text-foreground h-9"
+            onClick={openCommandBar}
+          >
+            <span className="flex items-center gap-2 text-xs">
+              <Command className="w-3 h-3" />
+              AI Command...
+            </span>
+            <kbd className="pointer-events-none h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 flex">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </Button>
         </div>
 
         {/* Navigation */}
@@ -120,12 +165,24 @@ export function Sidebar() {
                     )} 
                   />
                   <div className="flex-1 min-w-0">
-                    <p className={cn(
-                      "text-sm font-medium truncate",
-                      isActive && "text-primary"
-                    )}>
-                      {item.label}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className={cn(
+                        "text-sm font-medium truncate",
+                        isActive && "text-primary"
+                      )}>
+                        {item.label}
+                      </p>
+                      {item.badge && (
+                        <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
+                          {item.badge}
+                        </Badge>
+                      )}
+                      {item.isNew && (
+                        <Badge variant="secondary" className="h-4 px-1.5 text-[10px] bg-violet-500/20 text-violet-400 border-0">
+                          NEW
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground truncate">
                       {item.description}
                     </p>

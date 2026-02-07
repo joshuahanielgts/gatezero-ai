@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { useLiveTrips, useDrivers } from "@/hooks";
 import { VehicleNumber } from "@/components/ui/mono-text";
 import { TripStatusBadge } from "@/components/ui/status-badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Table,
   TableBody,
@@ -19,35 +22,42 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, MoreVertical, Eye, Phone, MapPin, RefreshCw } from "lucide-react";
+import { Search, MoreVertical, Eye, Phone, MapPin, RefreshCw, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useAutoRefresh } from "@/hooks/useAutoRefresh";
-import { getLiveTrips } from "@/data/liveDataSimulator";
+import type { TripStatus } from "@/types/database.types";
 
-type FilterTab = 'All' | 'On Route' | 'Delayed' | 'At Destination';
+type FilterTab = 'All' | 'Loading' | 'On Route' | 'Delayed' | 'At Destination';
 
 export default function LiveOperations() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterTab>('All');
+  const [lastRefresh, setLastRefresh] = useState(new Date());
   
-  const { data: trips, lastUpdated, isRefreshing, refresh } = useAutoRefresh(
-    getLiveTrips,
-    { interval: 30000 }
-  );
+  const { trips, isLoading, error, refetch } = useLiveTrips({ 
+    status: activeFilter === 'All' ? undefined : activeFilter as TripStatus,
+    realtime: true 
+  });
+  const { drivers } = useDrivers();
 
   const filteredTrips = trips.filter((trip) => {
-    const matchesSearch = trip.vehicleNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      trip.driverName.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    if (activeFilter === 'All') return matchesSearch;
-    return matchesSearch && trip.status === activeFilter;
+    const driver = drivers.find(d => d.id === trip.driver_id);
+    const matchesSearch = trip.vehicle_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (driver?.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+    return matchesSearch;
   });
 
-  const filters: FilterTab[] = ['All', 'On Route', 'Delayed', 'At Destination'];
+  const handleRefresh = async () => {
+    await refetch();
+    setLastRefresh(new Date());
+    toast.success("Data refreshed");
+  };
 
-  const getEtaDisplay = (eta: string, status: string) => {
+  const filters: FilterTab[] = ['All', 'Loading', 'On Route', 'Delayed', 'At Destination'];
+
+  const getEtaDisplay = (eta: string | null, status: string) => {
+    if (!eta) return <span className="text-muted-foreground">N/A</span>;
     if (status === 'At Destination' || status === 'Unloading') {
       return <span className="text-safe">Arrived</span>;
     }
@@ -60,6 +70,12 @@ export default function LiveOperations() {
       return <span className="text-blocked">Overdue</span>;
     }
     return formatDistanceToNow(etaDate, { addSuffix: false });
+  };
+
+  const getDriverName = (driverId: string | null) => {
+    if (!driverId) return 'Unassigned';
+    const driver = drivers.find(d => d.id === driverId);
+    return driver?.name || 'Unknown';
   };
 
   return (
@@ -76,25 +92,34 @@ export default function LiveOperations() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="w-2 h-2 rounded-full bg-safe animate-pulse" />
-              <span>Auto-refresh: 30s</span>
+              <span>Live updates enabled</span>
             </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={refresh}
-              disabled={isRefreshing}
+              onClick={handleRefresh}
+              disabled={isLoading}
               className="border-border"
             >
-              <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
-              {isRefreshing ? "Updating..." : "Refresh"}
+              <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+              {isLoading ? "Updating..." : "Refresh"}
             </Button>
           </div>
         </div>
 
         {/* Last Updated */}
         <div className="text-xs text-muted-foreground">
-          Last updated: {formatDistanceToNow(lastUpdated, { addSuffix: true })}
+          Last updated: {formatDistanceToNow(lastRefresh, { addSuffix: true })}
         </div>
+
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Connection Error</AlertTitle>
+            <AlertDescription>{error.message}</AlertDescription>
+          </Alert>
+        )}
 
         {/* Search and Filters */}
         <div className="flex flex-col sm:flex-row gap-4">
@@ -108,7 +133,7 @@ export default function LiveOperations() {
             />
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {filters.map((filter) => (
               <Button
                 key={filter}
@@ -163,74 +188,88 @@ export default function LiveOperations() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTrips.map((trip) => (
-                  <TableRow key={trip.id} className="border-border hover:bg-muted/30">
-                    <TableCell>
-                      <TripStatusBadge status={trip.status} />
-                    </TableCell>
-                    <TableCell>
-                      <VehicleNumber number={trip.vehicleNo} />
-                    </TableCell>
-                    <TableCell className="text-foreground">{trip.driverName}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">{trip.origin}</span>
-                        <span className="text-muted-foreground">→</span>
-                        <span className="text-foreground">{trip.destination}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="w-24">
-                        <Progress value={trip.progressPercent} className="h-2" />
-                        <p className="text-xs text-muted-foreground mt-1">{trip.progressPercent}%</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {getEtaDisplay(trip.eta, trip.status)}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-card border-border">
-                          <DropdownMenuItem 
-                            className="cursor-pointer"
-                            onClick={() => toast.info(`Viewing details for ${trip.vehicleNo}`)}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="cursor-pointer"
-                            onClick={() => toast.info(`Calling driver: ${trip.driverName}`)}
-                          >
-                            <Phone className="h-4 w-4 mr-2" />
-                            Contact Driver
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="cursor-pointer"
-                            onClick={() => toast.info(`Tracking ${trip.vehicleNo}`)}
-                          >
-                            <MapPin className="h-4 w-4 mr-2" />
-                            Track Location
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i} className="border-border">
+                      <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                      <TableCell><Skeleton className="h-2 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : filteredTrips.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      No active trips found
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredTrips.map((trip) => (
+                    <TableRow key={trip.id} className="border-border hover:bg-muted/30">
+                      <TableCell>
+                        <TripStatusBadge status={trip.status} />
+                      </TableCell>
+                      <TableCell>
+                        <VehicleNumber number={trip.vehicle_no} />
+                      </TableCell>
+                      <TableCell className="text-foreground">{getDriverName(trip.driver_id)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="text-muted-foreground">{trip.origin}</span>
+                          <span className="text-muted-foreground">→</span>
+                          <span className="text-foreground">{trip.destination}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="w-24">
+                          <Progress value={trip.progress_percent ?? 0} className="h-2" />
+                          <p className="text-xs text-muted-foreground mt-1">{trip.progress_percent ?? 0}%</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {getEtaDisplay(trip.eta, trip.status)}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-card border-border">
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => toast.info(`Viewing details for ${trip.vehicle_no}`)}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => toast.info(`Calling driver: ${getDriverName(trip.driver_id)}`)}
+                            >
+                              <Phone className="h-4 w-4 mr-2" />
+                              Contact Driver
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => toast.info(`Tracking ${trip.vehicle_no}`)}
+                            >
+                              <MapPin className="h-4 w-4 mr-2" />
+                              Track Location
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
-          
-          {filteredTrips.length === 0 && (
-            <div className="p-8 text-center">
-              <p className="text-muted-foreground">No trips found matching your criteria</p>
-            </div>
-          )}
         </div>
       </div>
     </AppLayout>

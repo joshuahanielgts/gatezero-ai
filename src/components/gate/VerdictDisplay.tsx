@@ -1,6 +1,9 @@
-import { Shield, ShieldX, Check, X, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Shield, ShieldX, Check, X, AlertTriangle, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { generateBillInsights, isGeminiConfigured, type BillInsights } from "@/services/geminiService";
+import type { Vehicle, Driver } from "@/types/database.types";
 
 interface VerdictDisplayProps {
   outcome: 'approved' | 'blocked';
@@ -8,6 +11,8 @@ interface VerdictDisplayProps {
   eWayBill: string;
   checks: { name: string; status: 'passed' | 'failed' | 'warning'; details: string }[];
   errors?: string[];
+  vehicle?: Partial<Vehicle> | null;
+  driver?: Partial<Driver> | null;
   onIssuePass?: () => void;
   onReset: () => void;
 }
@@ -18,10 +23,32 @@ export function VerdictDisplay({
   eWayBill,
   checks,
   errors,
+  vehicle,
+  driver,
   onIssuePass,
   onReset,
 }: VerdictDisplayProps) {
   const isApproved = outcome === 'approved';
+  const [aiInsights, setAiInsights] = useState<BillInsights | null>(null);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+
+  useEffect(() => {
+    const fetchInsights = async () => {
+      if (!isGeminiConfigured()) return;
+      
+      setIsLoadingInsights(true);
+      try {
+        const insights = await generateBillInsights(eWayBill, vehicle || null, driver || null, checks);
+        setAiInsights(insights);
+      } catch (error) {
+        console.error('Failed to fetch AI insights:', error);
+      } finally {
+        setIsLoadingInsights(false);
+      }
+    };
+
+    fetchInsights();
+  }, [eWayBill, vehicle, driver, checks]);
 
   return (
     <div className="max-w-xl mx-auto text-center animate-fade-in px-2 sm:px-0">
@@ -84,6 +111,71 @@ export function VerdictDisplay({
           ))}
         </div>
       </div>
+
+      {/* AI Insights Panel */}
+      {isGeminiConfigured() && (
+        <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 text-left">
+          <h3 className="text-xs sm:text-sm font-semibold text-foreground mb-2 sm:mb-3 flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />
+            AI Insights
+            {isLoadingInsights && <Loader2 className="w-3 h-3 animate-spin text-purple-400" />}
+          </h3>
+          
+          {isLoadingInsights ? (
+            <p className="text-xs sm:text-sm text-muted-foreground">Analyzing verification data...</p>
+          ) : aiInsights ? (
+            <div className="space-y-3">
+              {/* Summary */}
+              <p className="text-xs sm:text-sm text-foreground">{aiInsights.summary}</p>
+              
+              {/* Risk Level Badge */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] sm:text-xs text-muted-foreground">Risk Level:</span>
+                <span className={cn(
+                  "text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-medium",
+                  aiInsights.estimatedRiskLevel === 'LOW' && "bg-safe/20 text-safe",
+                  aiInsights.estimatedRiskLevel === 'MEDIUM' && "bg-expiring/20 text-expiring",
+                  aiInsights.estimatedRiskLevel === 'HIGH' && "bg-blocked/20 text-blocked"
+                )}>
+                  {aiInsights.estimatedRiskLevel}
+                </span>
+              </div>
+
+              {/* Risk Factors */}
+              {aiInsights.riskFactors.length > 0 && (
+                <div>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Risk Factors:</p>
+                  <ul className="space-y-1">
+                    {aiInsights.riskFactors.map((factor, i) => (
+                      <li key={i} className="text-[10px] sm:text-xs text-blocked flex items-start gap-1.5">
+                        <AlertTriangle className="w-3 h-3 shrink-0 mt-0.5" />
+                        {factor}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Recommendations */}
+              {aiInsights.recommendations.length > 0 && (
+                <div>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Recommendations:</p>
+                  <ul className="space-y-1">
+                    {aiInsights.recommendations.map((rec, i) => (
+                      <li key={i} className="text-[10px] sm:text-xs text-purple-300 flex items-start gap-1.5">
+                        <Sparkles className="w-3 h-3 shrink-0 mt-0.5" />
+                        {rec}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs sm:text-sm text-muted-foreground">Unable to generate insights</p>
+          )}
+        </div>
+      )}
 
       {/* Errors (for blocked) */}
       {errors && errors.length > 0 && (

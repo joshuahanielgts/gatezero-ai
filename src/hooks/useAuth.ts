@@ -1,0 +1,13 @@
+// GateZero - Auth Hook
+// Re-export from context for cleaner imports
+
+import { useContext } from 'react';
+import { AuthContext } from '@/contexts/AuthContextDef';
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

@@ -53,7 +53,7 @@ export function GatePassModal({
 
           {/* Header */}
           <div className="text-center mb-6">
-            <h2 className="text-lg font-bold text-foreground">WayGuard AI</h2>
+            <h2 className="text-lg font-bold text-foreground">GateZero</h2>
             <p className="text-xs text-muted-foreground">Compliance Gate Pass</p>
           </div>
 
@@ -103,7 +103,7 @@ export function GatePassModal({
           {/* Footer */}
           <div className="mt-6 pt-4 border-t border-border text-center">
             <p className="text-[10px] text-muted-foreground">
-              This is a digitally verified gate pass issued by WayGuard AI
+              This is a digitally verified gate pass issued by GateZero
             </p>
           </div>
         </div>
