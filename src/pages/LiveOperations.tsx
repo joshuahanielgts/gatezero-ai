@@ -180,9 +180,9 @@ export default function LiveOperations() {
                 <TableRow className="border-border hover:bg-transparent">
                   <TableHead className="text-muted-foreground">Status</TableHead>
                   <TableHead className="text-muted-foreground">Vehicle No</TableHead>
-                  <TableHead className="text-muted-foreground">Driver</TableHead>
-                  <TableHead className="text-muted-foreground">Route</TableHead>
-                  <TableHead className="text-muted-foreground">Progress</TableHead>
+                  <TableHead className="text-muted-foreground hidden md:table-cell">Driver</TableHead>
+                  <TableHead className="text-muted-foreground hidden sm:table-cell">Route</TableHead>
+                  <TableHead className="text-muted-foreground hidden lg:table-cell">Progress</TableHead>
                   <TableHead className="text-muted-foreground">ETA</TableHead>
                   <TableHead className="text-muted-foreground w-[50px]"></TableHead>
                 </TableRow>
@@ -193,9 +193,9 @@ export default function LiveOperations() {
                     <TableRow key={i} className="border-border">
                       <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                      <TableCell><Skeleton className="h-2 w-24" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-40" /></TableCell>
+                      <TableCell className="hidden lg:table-cell"><Skeleton className="h-2 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                     </TableRow>
@@ -215,21 +215,21 @@ export default function LiveOperations() {
                       <TableCell>
                         <VehicleNumber number={trip.vehicle_no} />
                       </TableCell>
-                      <TableCell className="text-foreground">{getDriverName(trip.driver_id)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-muted-foreground">{trip.origin}</span>
+                      <TableCell className="text-foreground hidden md:table-cell">{getDriverName(trip.driver_id)}</TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                          <span className="text-muted-foreground truncate max-w-[60px] sm:max-w-none">{trip.origin}</span>
                           <span className="text-muted-foreground">→</span>
-                          <span className="text-foreground">{trip.destination}</span>
+                          <span className="text-foreground truncate max-w-[60px] sm:max-w-none">{trip.destination}</span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <div className="w-24">
                           <Progress value={trip.progress_percent ?? 0} className="h-2" />
                           <p className="text-xs text-muted-foreground mt-1">{trip.progress_percent ?? 0}%</p>
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono text-sm">
+                      <TableCell className="font-mono text-xs sm:text-sm">
                         {getEtaDisplay(trip.eta, trip.status)}
                       </TableCell>
                       <TableCell>

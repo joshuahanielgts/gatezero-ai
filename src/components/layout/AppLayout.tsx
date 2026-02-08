@@ -11,8 +11,8 @@ export function AppLayout({ children }: AppLayoutProps) {
       
       {/* Main Content */}
       <main className="lg:ml-64 min-h-screen">
-        {/* Add top padding on mobile/tablet to account for hamburger menu */}
-        <div className="p-4 pt-16 lg:pt-8 lg:p-8">
+        {/* Responsive padding: mobile=16px, tablet=24px, desktop=32px */}
+        <div className="p-4 md:p-6 lg:p-8 pt-16 md:pt-16 lg:pt-8">
           {children}
         </div>
       </main>

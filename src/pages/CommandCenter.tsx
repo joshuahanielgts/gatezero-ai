@@ -35,10 +35,10 @@ export default function CommandCenter() {
         )}
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
           {isLoading ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-xl border border-border p-6">
+              <div key={i} className="bg-card rounded-xl border border-border p-4 sm:p-6">
                 <Skeleton className="h-4 w-24 mb-2" />
                 <Skeleton className="h-8 w-16 mb-2" />
                 <Skeleton className="h-3 w-32" />
@@ -87,11 +87,11 @@ export default function CommandCenter() {
         </div>
 
         {/* Split View - Live Feed & Trend Chart */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-          <div className="h-[350px] sm:h-[400px] lg:h-[450px]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5 lg:gap-6">
+          <div className="h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px]">
             <LiveFeed />
           </div>
-          <div className="h-[350px] sm:h-[400px] lg:h-[450px]">
+          <div className="h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px]">
             <TrendChart />
           </div>
         </div>

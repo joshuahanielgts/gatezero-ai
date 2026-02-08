@@ -134,10 +134,10 @@ export default function FleetGuard() {
                   <TableHeader>
                     <TableRow className="border-border hover:bg-transparent">
                       <TableHead className="text-muted-foreground">Reg No</TableHead>
-                      <TableHead className="text-muted-foreground">Type</TableHead>
-                      <TableHead className="text-muted-foreground">Owner</TableHead>
-                      <TableHead className="text-muted-foreground">Insurance Expiry</TableHead>
-                      <TableHead className="text-muted-foreground">Risk Level</TableHead>
+                      <TableHead className="text-muted-foreground hidden sm:table-cell">Type</TableHead>
+                      <TableHead className="text-muted-foreground hidden md:table-cell">Owner</TableHead>
+                      <TableHead className="text-muted-foreground">Insurance</TableHead>
+                      <TableHead className="text-muted-foreground hidden lg:table-cell">Risk Level</TableHead>
                       <TableHead className="text-muted-foreground">Status</TableHead>
                       <TableHead className="text-muted-foreground">Blacklist</TableHead>
                     </TableRow>
@@ -147,10 +147,10 @@ export default function FleetGuard() {
                       Array.from({ length: 5 }).map((_, i) => (
                         <TableRow key={i} className="border-border">
                           <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-32" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-10" /></TableCell>
                         </TableRow>
@@ -176,12 +176,12 @@ export default function FleetGuard() {
                             <TableCell>
                               <VehicleNumber number={vehicle.vehicle_no} />
                             </TableCell>
-                            <TableCell className="text-foreground">{vehicle.vehicle_type}</TableCell>
-                            <TableCell className="text-foreground">{vehicle.owner_name}</TableCell>
+                            <TableCell className="text-foreground hidden sm:table-cell">{vehicle.vehicle_type}</TableCell>
+                            <TableCell className="text-foreground hidden md:table-cell">{vehicle.owner_name}</TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                                 <span className={cn(
-                                  "font-mono text-sm",
+                                  "font-mono text-xs sm:text-sm",
                                   insuranceStatus === 'expired' && "text-blocked",
                                   insuranceStatus === 'expiring' && "text-expiring",
                                   insuranceStatus === 'active' && "text-foreground"
@@ -193,7 +193,7 @@ export default function FleetGuard() {
                                 </StatusBadge>
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden lg:table-cell">
                               <RiskBadge level={getRiskLevel(vehicle.risk_score)} />
                             </TableCell>
                             <TableCell>

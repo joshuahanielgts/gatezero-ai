@@ -170,15 +170,15 @@ export function PredictiveAnalytics({
       {/* AI Header */}
       <Card className="bg-gradient-to-br from-violet-500/10 via-purple-500/10 to-fuchsia-500/10 border-violet-500/20">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center">
-                <Brain className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shrink-0">
+                <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <div>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  Predictive Analytics
-                  <Badge variant="outline" className="text-violet-500 border-violet-500/30">
+              <div className="min-w-0">
+                <CardTitle className="text-base sm:text-lg flex flex-wrap items-center gap-2">
+                  <span className="truncate">Predictive Analytics</span>
+                  <Badge variant="outline" className="text-violet-500 border-violet-500/30 shrink-0">
                     <Sparkles className="w-3 h-3 mr-1" />
                     AI Powered
                   </Badge>
@@ -188,10 +188,11 @@ export function PredictiveAnalytics({
                 </CardDescription>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Button variant="outline" size="sm" className="h-8">
                 <Calendar className="w-3 h-3 mr-2" />
-                Last 90 days
+                <span className="hidden sm:inline">Last 90 days</span>
+                <span className="sm:hidden">90d</span>
               </Button>
             </div>
           </div>
@@ -199,7 +200,7 @@ export function PredictiveAnalytics({
       </Card>
 
       {/* Predictions Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {predictions.map((pred, index) => (
           <Card key={index} className="relative overflow-hidden">
             <CardContent className="p-4">

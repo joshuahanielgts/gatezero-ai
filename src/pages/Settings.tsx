@@ -133,22 +133,26 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="organization" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 max-w-2xl">
-          <TabsTrigger value="organization" className="gap-2">
-            <Building2 className="w-4 h-4" />
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-w-2xl h-auto">
+          <TabsTrigger value="organization" className="gap-2 py-2 sm:py-1.5">
+            <Building2 className="w-4 h-4 shrink-0" />
             <span className="hidden sm:inline">Organization</span>
+            <span className="sm:hidden text-xs">Org</span>
           </TabsTrigger>
-          <TabsTrigger value="api" className="gap-2">
-            <Key className="w-4 h-4" />
+          <TabsTrigger value="api" className="gap-2 py-2 sm:py-1.5">
+            <Key className="w-4 h-4 shrink-0" />
             <span className="hidden sm:inline">API Keys</span>
+            <span className="sm:hidden text-xs">API</span>
           </TabsTrigger>
-          <TabsTrigger value="webhooks" className="gap-2">
-            <Webhook className="w-4 h-4" />
+          <TabsTrigger value="webhooks" className="gap-2 py-2 sm:py-1.5">
+            <Webhook className="w-4 h-4 shrink-0" />
             <span className="hidden sm:inline">Webhooks</span>
+            <span className="sm:hidden text-xs">Hooks</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="gap-2">
-            <Bell className="w-4 h-4" />
+          <TabsTrigger value="notifications" className="gap-2 py-2 sm:py-1.5">
+            <Bell className="w-4 h-4 shrink-0" />
             <span className="hidden sm:inline">Notifications</span>
+            <span className="sm:hidden text-xs">Alerts</span>
           </TabsTrigger>
         </TabsList>
 

@@ -93,48 +93,48 @@ export function AlertCenter({ alerts, onAcknowledge, onResolve, onDismiss }: Ale
   return (
     <div className="space-y-4">
       {/* Header Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card className="bg-red-500/10 border-red-500/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Critical</p>
-                <p className="text-2xl font-bold text-red-500">{criticalCount}</p>
+                <p className="text-xl sm:text-2xl font-bold text-red-500">{criticalCount}</p>
               </div>
-              <AlertTriangle className="w-8 h-8 text-red-500/50" />
+              <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-red-500/50" />
             </div>
           </CardContent>
         </Card>
         <Card className="bg-orange-500/10 border-orange-500/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Active</p>
-                <p className="text-2xl font-bold text-orange-500">{activeCount}</p>
+                <p className="text-xl sm:text-2xl font-bold text-orange-500">{activeCount}</p>
               </div>
-              <Bell className="w-8 h-8 text-orange-500/50" />
+              <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500/50" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Acknowledged</p>
-                <p className="text-2xl font-bold">{alerts.filter(a => a.status === 'acknowledged').length}</p>
+                <p className="text-xl sm:text-2xl font-bold">{alerts.filter(a => a.status === 'acknowledged').length}</p>
               </div>
-              <Clock className="w-8 h-8 text-muted-foreground/50" />
+              <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground/50" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Resolved</p>
-                <p className="text-2xl font-bold text-green-500">{alerts.filter(a => a.status === 'resolved').length}</p>
+                <p className="text-xl sm:text-2xl font-bold text-green-500">{alerts.filter(a => a.status === 'resolved').length}</p>
               </div>
-              <Check className="w-8 h-8 text-green-500/50" />
+              <Check className="w-6 h-6 sm:w-8 sm:h-8 text-green-500/50" />
             </div>
           </CardContent>
         </Card>
