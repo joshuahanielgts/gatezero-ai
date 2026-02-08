@@ -113,9 +113,7 @@ export function Sidebar() {
         {/* Logo/Brand */}
         <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Shield className="w-6 h-6 text-primary" />
-            </div>
+            <img src="/logo.svg" alt="GateZero" className="w-10 h-10" />
             <div>
               <h1 className="font-semibold text-foreground text-lg tracking-tight">GateZero</h1>
               <p className="text-xs text-muted-foreground">Compliance Firewall</p>

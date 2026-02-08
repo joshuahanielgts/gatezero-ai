@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="zeroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D1FAE5;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Shield Shape -->
+  <path 
+    d="M256 32L48 112v160c0 132.28 89.38 247.76 208 280 118.62-32.24 208-147.72 208-280V112L256 32z" 
+    fill="url(#shieldGrad)"
+  />
+  
+  <!-- Inner Shield Border -->
+  <path 
+    d="M256 64L80 132v140c0 110.67 74.83 207.58 176 236 101.17-28.42 176-125.33 176-236V132L256 64z" 
+    fill="none" 
+    stroke="#065F46" 
+    stroke-width="4"
+    opacity="0.3"
+  />
+  
+  <!-- Zero / Gate Symbol -->
+  <ellipse 
+    cx="256" 
+    cy="272" 
+    rx="80" 
+    ry="100" 
+    fill="none" 
+    stroke="url(#zeroGrad)" 
+    stroke-width="28"
+    stroke-linecap="round"
+  />
+  
+  <!-- Checkmark inside zero -->
+  <path 
+    d="M220 272l24 24 48-48" 
+    fill="none" 
+    stroke="#FFFFFF" 
+    stroke-width="16" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+  
+  <!-- Top accent line -->
+  <path 
+    d="M200 160h112" 
+    fill="none" 
+    stroke="#FFFFFF" 
+    stroke-width="8" 
+    stroke-linecap="round"
+    opacity="0.6"
+  />
+</svg>
